@@ -13,10 +13,6 @@ export default function RecentCourses() {
     const today = new Date();
     const dateLastWeek = getLastWeek(today, 7);
 
-    console.log("TODAY :", today);
-    console.log("DATE LAST WEEK :", dateLastWeek);
-    console.log("COURSE DATEs :", course.date);
-
     return course.date >= dateLastWeek && course.date <= today;
   })
 

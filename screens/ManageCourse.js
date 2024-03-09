@@ -13,6 +13,11 @@ export default function ManageCourse({route, navigation}) {
   const courseId = route.params?.courseId;
   let isEditing = false;
 
+  const selectedCourse = coursesContext.courses.find((course) => course.id === courseId);
+
+
+  console.log("SELECTED COURSE :", selectedCourse);
+
 
   if(courseId){
     isEditing=true;
@@ -34,22 +39,18 @@ export default function ManageCourse({route, navigation}) {
     navigation.goBack();
   }
   
-  const addOrUpdateHandler = () => {
+  const addOrUpdateHandler = (courseData) => {
     if(isEditing){
-      coursesContext.updateCourse(courseId, {description: 'Calm Down', amount: 55, date: new Date()});
+      coursesContext.updateCourse(courseId, courseData);
     }
     else{
-      coursesContext.addCourse({description: 'Calm Down, I added', amount: 75, date: new Date()});
+      coursesContext.addCourse(courseData);
     }
     navigation.goBack();
   }
   return (
     <View style={styles.container}>
-      <CourseForm />
-      <View style={styles.buttons}>
-      <CustomButton onPress={cancelHandler} style={styles.cancel} styleText={styles.cancelText} label={"İptal Et"} />
-      <CustomButton onPress={addOrUpdateHandler} style={styles.addOrUpdate} styleText={styles.addOrUpdateText} label={isEditing ? "Güncelle" : "Ekle"} />
-      </View>
+      <CourseForm cancelHandler={cancelHandler} defaultValues={selectedCourse} onSubmit={addOrUpdateHandler} buttonLabel={isEditing ? "Güncelle" : "Ekle"} />
       {
         isEditing && <View style={styles.deleteContainer}>
           <EvilIcons name="trash" size={36} color="black" onPress={deleteCourse}/>
@@ -70,30 +71,5 @@ const styles = StyleSheet.create({
     borderTopColor: 'blue',
     paddingTop: 10,
     marginTop: 16,
-  },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 15,
-  },
-  cancel: {
-    backgroundColor: 'red',
-    minWidth: 120,
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelText: {
-    color:'white',
-  },
-  addOrUpdate: {
-    backgroundColor: 'blue',
-    minWidth: 120,
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addOrUpdateText: {
-    color:'white',
   },
 })
