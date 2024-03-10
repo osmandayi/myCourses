@@ -1,14 +1,20 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import React, { useLayoutEffect } from 'react'
+import React, { useLayoutEffect, useState } from 'react'
 import { EvilIcons } from '@expo/vector-icons';
 import CustomButton from '../components/CustomButton';
 
 import { useContext } from 'react'
 import { CoursesContext } from '../store/coursesContext'
 import CourseForm from '../components/form/CourseForm';
+import { deletedCourse, storeCourse, updateCourse } from '../helper/http';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorText from '../components/ErrorText';
 
 export default function ManageCourse({route, navigation}) {
-  const coursesContext = useContext(CoursesContext)
+  const coursesContext = useContext(CoursesContext);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [error, setError] = useState();
 
   const courseId = route.params?.courseId;
   let isEditing = false;
@@ -30,23 +36,50 @@ export default function ManageCourse({route, navigation}) {
   }, [navigation, isEditing]);
 
 
-  const deleteCourse = () => {
-    navigation.goBack();
-    coursesContext.deleteCourse(courseId);
+
+
+  const deleteCourse = async() => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      coursesContext.deleteCourse(courseId);
+      await deletedCourse(courseId);
+      navigation.goBack();
+    } catch (error) {
+      setError('Kurs silinemedi !');
+      setIsSubmitting(false);
+    }
   }
   
   const cancelHandler = () => {
     navigation.goBack();
   }
   
-  const addOrUpdateHandler = (courseData) => {
-    if(isEditing){
-      coursesContext.updateCourse(courseId, courseData);
+  const addOrUpdateHandler = async(courseData) => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      if(isEditing){
+        coursesContext.updateCourse(courseId, courseData);
+        await updateCourse(courseId, courseData);
+      }
+      else{
+        const id = await storeCourse(courseData);
+        coursesContext.addCourse({...courseData, id: id});
+      }
+      navigation.goBack();
+    } catch (error) {
+      setError('Kurs ekleme veya güncellemede bir problem oluştu !');
+      setIsSubmitting(false);
     }
-    else{
-      coursesContext.addCourse(courseData);
-    }
-    navigation.goBack();
+  }
+
+  if(error && !isSubmitting){
+    return <ErrorText message={error} />
+  }
+
+  if(isSubmitting){
+    return <LoadingSpinner />
   }
   return (
     <View style={styles.container}>
